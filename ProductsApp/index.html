@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Product App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body>
+    <div>
+        <h2>All Products</h2>
+        <!-- This is a named paragraph under which we will append products returned by our Web API service.
+              The Web API service is automatically invoked via a GET after the page's DOM is fully loaded (see below) -->
+        <ul id="products" />
+
+    </div>
+    <div>
+        <h2>Search by ID</h2>
+
+        <!-- This defines a text box that accepts a max of 5 characters. A button is also defined to search for products.-->
+        <input type="text" id="prodId" size="5" />
+
+        <!-- when a user clicks on the Search button we will invoke our find function (below) -->
+        <input type="button" value="Search" onclick="find();" />
+
+        <!-- This is a named paragraph under which we will append the results of the find function (see below) -->
+        <p id="product" />
+
+    </div>
+
+    <!-- The line below links to jQuery framework for use in the page -->
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+    <script>
+        // This is the URI for your Web API service which maps to your Controller
+        var uri = 'api/products';
+
+        // jQuery commands are preceded with a dollar sign.
+
+        // Code included inside $( document ).ready() only runs after the page's DOM is ready for JavaScript code to run.
+        $(document).ready(function () {
+
+            // This commands sends an AJAX request using HTTP GET to your Web API service
+            // In this case it is invoking the Web API service to GET all products and it runs after the page's DOM is fully loaded.
+            // The code at .done gets invoked when the AJAX request is done running
+            $.getJSON(uri)
+            .done(function (data) {
+                // When the getJSON is done this code will run to walk through the array of JSON objects returned by the Web API
+
+                // The .each( function ) command will loop the array of JSON objects
+                $.each(data, function (key, item) {
+                    // This command creates an unordered list item in HTML, calling a local function to format the item in the JSON array
+                    // for display upon the HTML page.
+                    // Each formatted item is appended to the unordered list defined above named 'products'
+                    $('<li>', { text: formatItem(item) }).appendTo($('#products'));
+                });
+            });
+        });
+
+        // This function is invoked by the jquery .each(function) calls and is passed a JSON item from the array returned by our
+        // Web API service
+        function formatItem(item) {
+            // the item consists of a name and price - retrieve each and return a string with them suitable for disply upon the page
+            return item.Id + ' : ' + item.Category + ' : ' + item.Name + ': $' + item.Price;
+        }
+
+        // This function is invoked when a user clicks on the Search button defined above
+        function find() {
+
+            // This jQuery command defines a variable and populates it with the value that the user entered into the text box (above)
+            var id = $('#prodId').val();
+
+            // This jQuery command sends an AJAX request using HTTP GET to your Web API service
+            // In this case it is invoking the Web API service via a GET products and appending the value that the user entered into
+            // the text box to the URI for invoking the Web API
+            $.getJSON(uri + '/' + id)
+            .done(function (data) {
+
+                // When the GET command is done this code is invoked and 'data' may a single JSON object that matched
+                // what the user entered into the text box above
+                // The jQuery command below invokes the formatItem function (above) and passes it the JSON object to format for display
+                // The text result of call to the formatItem function is appended to a paragraph named 'product' (defined above)
+                $('#product').text(formatItem(data));
+            })
+            // This is like a CATCH and will be invoked if an exception occurs.
+            // The jqXHR.fail(function( jqXHR, textStatus, errorThrown ) function is built into jQuery and enables us to catch exceptions.
+            // jqXHR is the jQuery XMLHttpRequest and contains the full HTTP request if needed.
+            // If an exception occurs tihs will extract the text of the error and append it to the paragraph named 'product' (defined above).
+            .fail(function (jqXHR, textStatus, err) {
+                $('#product').text('Error: ' + err);
+            });
+        }
+    </script>
+</body>
+</html>
